@@ -274,9 +274,15 @@ def executable_claimed_bytes(executable) -> float:
     analysis = executable.memory_analysis()
     return float(analysis.temp_size_in_bytes + analysis.argument_size_in_bytes + analysis.output_size_in_bytes)
 
+def resident_design_bytes() -> float:
+    try:
+        return float((jax.devices()[0].memory_stats() or {}).get('bytes_in_use', 0))
+    except Exception:
+        return 0.0
+
 def executable_fits(executable) -> bool:
     budget = worker_memory_budget_bytes()
-    return not budget or executable_claimed_bytes(executable) <= GRADIENT_MEMORY_SHARE * budget
+    return not budget or executable_claimed_bytes(executable) + resident_design_bytes() <= GRADIENT_MEMORY_SHARE * budget
 
 def is_out_of_memory(failure: BaseException) -> bool:
     text = str(failure).lower()
