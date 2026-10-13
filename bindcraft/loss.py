@@ -532,9 +532,10 @@ def binder_chain_flag_mask(protein_complex: dict[str, Protein], binder: str, fla
     return mask
 
 def binder_framework_mask(protein_complex: dict[str, Protein], binder: str, residue_count: int, designed_only: bool=True) -> Array:
+    coldspot = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.COLDSPOT, residue_count)
     declared = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.CONTACT, residue_count)
     occupied = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.DESIGN, residue_count) if designed_only else binder_chain_mask(protein_complex, binder, residue_count)
-    return occupied & ~declared & declared.any() & (complex_residue_weights(protein_complex) > 0)
+    return jnp.where(coldspot.any(), coldspot, occupied & ~declared & declared.any()) & (complex_residue_weights(protein_complex) > 0)
 
 @loss('interface_contacts', target_weighting='binds_target')
 def interface_contacts_loss(protein_states: ProteinStates, predictions: StructurePredictions, prediction_state: str='complex', binder: str='binder', target: str='target', cutoff: float=21.6875, contacts_per_residue: int=1, contact_residue_count: int | float=float('inf')) -> Array:
