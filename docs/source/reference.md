@@ -73,7 +73,7 @@ Metadata is a separate JSON object for author, project and other descriptive fie
 | `targets[].weight` | 1 | Relative importance of each target; a negative value also selects detargeting. |
 | `binder_lengths` | Preset or scaffold | `[80,80]` fixes 80 residues; `[60,100]` allows the inclusive range; `[60,80,100]` allows only those choices. Length is per copy for an oligomer. |
 | `binder_scaffold` | Unset | Supply an existing binder fold; overrides de novo length selection. |
-| `mutate_positions` | Preset or unset | Select scaffold residues to redesign, resize or mark as binding/non-binding. |
+| `mutate_positions` | Preset or unset | Per-residue scaffold edits: which residues may change sequence, which may contact the target, and which spans may resize. Despite the name a selection is not always mutated: `A33!` holds the residue the scaffold has and only permits contact. |
 | `aa_bias` | Preset; `binder` excludes C | Amino-acid propensities: 1 neutral, 2 favoured, 0.4 disfavoured, 0 excluded. Applies to design and redesign. |
 | `copies` | 1; oligomer preset 2 | Number of binder copies in an assembly. |
 | `oligomer_tie` | `symmetric` | Tie copy identities and sequence redesign. `none` leaves copies independent; it does not enforce an identical-sequence oligomer. |
@@ -87,7 +87,7 @@ Chains in one target object must share a structure and coordinate frame. Separat
 
 ### Scaffold editing
 
-Use input chain letters and residue numbers: `A26-32` redesigns a span; `A52-57(5-7)` permits that span to contain 5–7 residues. `A33*` marks a non-binding framework position; `A33+` marks a binding position without making it freely designable. A bare chain such as `A` selects that chain. More explicit residue flags use `selection+FLAG`, for example `A33+CONTACT`; see the flag table below. Commas combine selections.
+Use input chain letters and residue numbers: `A26-32` redesigns a span; `A52-57(5-7)` permits that span to contain 5–7 residues. A selection may change sequence and may contact the target by default, and the two are separable: `A33*` stays designable but refuses contact, which is how a framework position is redesigned without being allowed into the interface, and `A33!` is the reverse, holding the residue the scaffold has while still permitting contact. Flags are also named, with `selection+FLAG` setting one and `selection-FLAG` clearing it, so `A33+COLDSPOT` adds a flag and `A33-DESIGN` is the long form of `A33!`; see the flag table below. Commas combine selections.
 
 | Flag | Meaning |
 | --- | --- |
