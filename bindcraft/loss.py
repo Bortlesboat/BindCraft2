@@ -472,7 +472,7 @@ def binder_coldspot_loss(protein_states: ProteinStates, predictions: StructurePr
     protein_complex = protein_states[prediction_state]
     distogram = predictions[prediction_state].metrics['distogram']
     chain_slices, residue_count = chain_residue_slices(protein_complex), distogram.shape[0]
-    framework_mask = binder_framework_mask(protein_complex, binder, residue_count, designed_only)
+    framework_mask = binder_repelled_mask(protein_complex, binder, residue_count, designed_only)
     target_mask = chain_residue_mask(residue_count, chain_slices[target]) & (complex_residue_weights(protein_complex) > 0)
     return nonbinding_residue_repulsion_loss(distogram, target_mask, framework_mask, cutoff, contacts_per_residue)
 
@@ -532,10 +532,13 @@ def binder_chain_flag_mask(protein_complex: dict[str, Protein], binder: str, fla
     return mask
 
 def binder_framework_mask(protein_complex: dict[str, Protein], binder: str, residue_count: int, designed_only: bool=True) -> Array:
-    coldspot = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.COLDSPOT, residue_count)
     declared = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.CONTACT, residue_count)
     occupied = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.DESIGN, residue_count) if designed_only else binder_chain_mask(protein_complex, binder, residue_count)
-    return jnp.where(coldspot.any(), coldspot, occupied & ~declared & declared.any()) & (complex_residue_weights(protein_complex) > 0)
+    return occupied & ~declared & declared.any() & (complex_residue_weights(protein_complex) > 0)
+
+def binder_repelled_mask(protein_complex: dict[str, Protein], binder: str, residue_count: int, designed_only: bool=True) -> Array:
+    coldspot = binder_chain_flag_mask(protein_complex, binder, ResidueFlags.COLDSPOT, residue_count)
+    return jnp.where(coldspot.any(), coldspot & (complex_residue_weights(protein_complex) > 0), binder_framework_mask(protein_complex, binder, residue_count, designed_only))
 
 @loss('interface_contacts', target_weighting='binds_target')
 def interface_contacts_loss(protein_states: ProteinStates, predictions: StructurePredictions, prediction_state: str='complex', binder: str='binder', target: str='target', cutoff: float=21.6875, contacts_per_residue: int=1, contact_residue_count: int | float=float('inf')) -> Array:
