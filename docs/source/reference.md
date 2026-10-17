@@ -32,7 +32,7 @@ Each layer overrides the ones above it in the table. A target therefore wins ove
 
 ### Every setting at its default
 
-`settings/core/reference.json` in your BindCraft2 repo is the catalogue of all 237 settings BC2 reads, each written at its default. `null` there means off or unset, not zero. **This file is never loaded**; it is documentation only. Change a default for every campaign in `settings/core/default.json` in your BindCraft2 repo, and change one campaign in its own JSON or with `--set`.
+`settings/core/reference.json` in your BindCraft2 repo is the catalogue of all 239 settings BC2 reads, each written at its default. `null` there means off or unset, not zero. **This file is never loaded**; it is documentation only. Change a default for every campaign in `settings/core/default.json` in your BindCraft2 repo, and change one campaign in its own JSON or with `--set`.
 
 ### Paths
 
@@ -479,6 +479,7 @@ A sweep needs `max_trajectories`, divides its budget between arms, and disables 
 | `attention_backend` | `auto` | Choose attention implementation: `auto`, `cudnn`, `chunked` or `stock`. `auto` uses cuDNN where it works and `chunked` otherwise, and demotes any single design shape to `chunked` when its compiled gradient would not fit the worker budget. Leave automatic unless diagnosing performance. |
 | `mutate_gate_draws` | `1` | How many predictions the mutate-stage gate averages over. The mutate gate judges a single fresh draw, which samples one AF2 model at random and is noisier than the four gates before it; raising this takes the best of several draws at the cost of that many extra predictions per trajectory. |
 | `use_cueq` | false | Enable optional cuEquivariance kernels when installed. |
+| `use_remat` | true | Recompute activations during the backward pass instead of holding them, which is what lets a large complex fit at all. False keeps them and runs faster where the memory is there to spare. |
 | `auto_multi_gpu` | true | Use the visible GPU allocation automatically; false keeps a single process. |
 | `workers_per_gpu`, `max_workers_per_gpu` | `auto`, 8 | Set or cap concurrent design workers per card. |
 | `design_workers` | Unset | Cap total workers across the allocation. |

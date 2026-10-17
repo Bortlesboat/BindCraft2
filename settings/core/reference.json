@@ -263,6 +263,7 @@
     "termini_together": null,
     "trajectory_only": false,
     "use_cueq": false,
+    "use_remat": true,
     "validation_crop_flank": 5,
     "validation_model": null,
     "validation_models": null,
