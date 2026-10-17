@@ -19,8 +19,6 @@ os.environ.setdefault('JAX_COMPILATION_CACHE_DIR', os.path.join(os.environ.get('
 os.environ.setdefault('JAX_PERSISTENT_CACHE_ENABLE_XLA_CACHES', 'none')
 if 'triton_gemm' not in os.environ.get('XLA_FLAGS', ''):
     append_xla_flags('--xla_gpu_enable_triton_gemm=false')
-if 'xla_gpu_autotune_level' not in os.environ.get('XLA_FLAGS', ''):
-    append_xla_flags('--xla_gpu_autotune_level=0')
 if os.environ.get('BC2_XLA_EXTRA', '').strip():
     append_xla_flags(os.environ['BC2_XLA_EXTRA'].strip())
 warnings.filterwarnings('ignore', message=r"Error reading persistent compilation cache entry for 'jit_(_where|dot_product_attention)", category=UserWarning)

@@ -221,6 +221,16 @@ still run: BindCraft2 measures the compiled gradient and moves that one shape on
 attention route when it does not fit, so the first thing you see is a line naming the shape and the
 route, not a failure. A shape far past it runs out of memory anyway.
 
+### Trading compile time for stability
+
+BindCraft2 leaves XLA's GEMM autotuning at its default. Turning it off with
+`XLA_FLAGS=--xla_gpu_autotune_level=0` cuts about a fifth off a worker's startup compile, and on a
+scaffolded campaign with more than one worker per card it also makes cuDNN fail to load its cached
+attention graph: measured over sixteen matched two-worker VHH runs, four of eight lost a worker
+with autotuning off and none of eight lost one with it on. A lost worker costs more than the
+compile it saved, so the flag is not set for you. Set it yourself on a single-worker run, or on a
+de novo campaign, where the failure has not been seen.
+
 ### When a campaign runs out of GPU memory
 
 Trouble shoot working down this list; each step costs less than the one below it.
