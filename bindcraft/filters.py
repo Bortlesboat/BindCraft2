@@ -165,7 +165,7 @@ def residue_confidence_tracks(predictions: StructurePredictions, prediction_stat
 @filter_metric('i_pDAE')
 def interface_pdae_metric(protein_states: ProteinStates, predictions: StructurePredictions, prediction_state: str='complex', binder: str='binder', target: str='target', cutoff: float=8.0) -> float | None:
     directions = interface_pae_directions(predictions, prediction_state, binder, target, cutoff)
-    return None if directions is None else float(max(anchored_interface_tm_scores(pae, contact).max() for pae, contact in directions))
+    return None if directions is None else float(sum(jnp.mean(anchored_interface_tm_scores(pae, contact), where=contact.any(-1)) for pae, contact in directions)/len(directions))
 
 INTERFACE_PDAE_METRICS = {'i_pDAE': interface_pdae_metric}
 
