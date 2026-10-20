@@ -462,7 +462,7 @@ def scaffold_framework_correspondence(protein_states: ProteinStates, prediction_
     scaffold_protein = Protein.from_structure(scaffold, chains=scaffold_chain)[scaffold_chain]
     residue_numbers = np.asarray(scaffold_protein.residue_index)
     scaffold_framework = np.ones(len(scaffold_protein), dtype=bool)
-    for start, end, _, _ in parse_scaffold_edits(scaffold_edits, scaffold_chain, jax.random.PRNGKey(0)):
+    for start, end, _, _ in (scaffold_edit for scaffold_edit in parse_scaffold_edits(scaffold_edits, scaffold_chain, jax.random.PRNGKey(0)) if scaffold_edit[3] & ResidueFlags.DESIGN):
         scaffold_framework &= (residue_numbers < start) | (residue_numbers > end)
     return (design_framework, scaffold_protein, scaffold_framework) if design_framework.sum() == scaffold_framework.sum() else None
 
