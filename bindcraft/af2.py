@@ -170,7 +170,13 @@ def interface_asym_ids(chain_names: tuple[str, ...], chain_lengths: tuple[int, .
         return residue_chain_ids(chain_lengths)
     return jnp.concatenate([jnp.full((length,), assembly_names.index(assembly_name(name)), dtype=jnp.int32) for name, length in zip(chain_names, chain_lengths)])
 
+MAX_RELATIVE_OFFSET = min(af_config.CONFIG.model.embeddings_and_evoformer.max_relative_feature, af_config.CONFIG_MULTIMER.model.embeddings_and_evoformer.max_relative_idx)
+
 def cyclic_sequence_offsets(residue_index: Array, asym_id: Array, flags: Array, seq_mask: Array, offset_mode: str='direction') -> Array:
+    """Sequence separation of every residue pair, as the relative position encoding reads it.
+
+    The encoding clips at MAX_RELATIVE_OFFSET either side of zero, so writing that bound says two
+    residues are further apart than the model can tell."""
     offsets = residue_index[:, None] - residue_index[None, :]
     same_chain = asym_id[:, None] == asym_id[None, :]
     chain_lengths = (same_chain * seq_mask[None, :]).sum(-1)
@@ -180,7 +186,7 @@ def cyclic_sequence_offsets(residue_index: Array, asym_id: Array, flags: Array, 
     if offset_mode in ('direction', 'neighbours'):
         cyclic_distance = jnp.where(cyclic_distance < jnp.abs(offsets), -cyclic_distance, cyclic_distance)
     if offset_mode == 'neighbours':
-        cyclic_distance = jnp.where(jnp.abs(cyclic_distance) > 2, 32 * jnp.sign(cyclic_distance), cyclic_distance)
+        cyclic_distance = jnp.where(jnp.abs(cyclic_distance) > 2, MAX_RELATIVE_OFFSET * jnp.sign(cyclic_distance), cyclic_distance)
     return jnp.where(cyclic_pairs, cyclic_distance * jnp.sign(offsets), offsets).astype(jnp.int32)
 
 def alphafold_input_features(sequence: Array, sequence_profile: Array, atoms: Array, atom_mask: Array, residue_index: Array, asym_id: Array, seq_mask: Array, flags: Array, dropout: Array, cyclic_offset_mode: str='direction', entity_id: Array | None=None, target_flexibility: float=0.0, large_complex_initialization: bool=False) -> dict[str, Array]:
