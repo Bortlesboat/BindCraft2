@@ -439,7 +439,7 @@ def known_campaign_settings() -> frozenset[str]:
     return frozenset({'core', 'modality', 'paratope_conformations', 'target'} |set(design_property_names()) | CAMPAIGN_SETTING_NAMES | set(DEFAULT_SETTINGS) | set(FINAL_CONFIDENCE_FILTERS) | set(LOSS_PARAMETERS) | set(DOMAIN_PARAMETERS) | {f'weights_{name}' for name in REGISTERED_LOSSES} | {f'{stage}_steps' for stage in DESIGN_STAGE_NAMES if stage != 'final'} | {f'{filter}_{stage}' for filter in ('min_plddt', 'min_iptm', 'max_detarget_iptm') for stage in DESIGN_STAGE_NAMES} | {f'min_{terminus}_terminus_away_cosine_final' for terminus in ('n', 'c')})
 
 def metric_parameter_names(metric_function) -> frozenset[str]:
-    return frozenset(inspect.signature(metric_function).parameters) - {'protein_states', 'predictions', 'confidence_floor'}
+    return frozenset(inspect.signature(metric_function).parameters) - {'protein_states', 'predictions'}
 
 def unrecognized_setting(name: str, accepted, prefix: str='') -> str:
     nearest = difflib.get_close_matches(name, sorted(accepted), n=1, cutoff=0.6)
